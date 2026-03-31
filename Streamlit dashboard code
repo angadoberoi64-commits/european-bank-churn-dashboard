@@ -89,3 +89,4 @@ st.markdown(f"""
 # ================= DATA ================= #
 
 st.dataframe(df_filtered.head(50))
+pd.read_csv("churn_data.csv")
