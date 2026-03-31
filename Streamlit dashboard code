@@ -1,0 +1,91 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+st.set_page_config(layout="wide")
+
+# Load Data
+df = pd.read_csv("data/churn_data.csv")
+
+# Title
+st.markdown("<h1 style='text-align:center;'>European Bank - Customer Churn Analysis</h1>", unsafe_allow_html=True)
+
+# ================= KPI SECTION ================= #
+
+total = df.shape[0]
+churned = df[df["Exited"] == 1].shape[0]
+churn_rate = (churned / total) * 100
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric("Total Customers", total)
+col2.metric("Churned Customers", churned)
+col3.metric("Churn Rate", f"{churn_rate:.2f}%")
+
+st.markdown("---")
+
+# ================= SIDEBAR ================= #
+
+st.sidebar.header("Filters")
+
+geo = st.sidebar.multiselect("Geography", df["Geography"].unique(), default=df["Geography"].unique())
+active = st.sidebar.multiselect("Active Member", df["IsActiveMember"].unique(), default=df["IsActiveMember"].unique())
+
+df_filtered = df[(df["Geography"].isin(geo)) & (df["IsActiveMember"].isin(active))]
+
+# ================= ROW 1 ================= #
+
+col1, col2 = st.columns(2)
+
+# Active Member Churn
+active_churn = df_filtered.groupby("IsActiveMember")["Exited"].mean().reset_index()
+
+fig1 = px.bar(active_churn, x="IsActiveMember", y="Exited", title="Churn By Active Member")
+col1.plotly_chart(fig1, use_container_width=True)
+
+# Country Churn
+country_churn = df_filtered.groupby("Geography")["Exited"].mean().reset_index()
+
+fig2 = px.bar(country_churn, x="Exited", y="Geography", orientation="h",
+              title="Churn By Country", color="Geography")
+col2.plotly_chart(fig2, use_container_width=True)
+
+# ================= ROW 2 ================= #
+
+col3, col4, col5 = st.columns(3)
+
+# Age Group
+df_filtered["AgeGroup"] = pd.cut(df_filtered["Age"], bins=[18,30,50,100],
+                                labels=["<30","30-50","50+"])
+
+age_churn = df_filtered.groupby("AgeGroup")["Exited"].mean().reset_index()
+
+fig3 = px.bar(age_churn, x="AgeGroup", y="Exited", title="Churn By Age Group")
+col3.plotly_chart(fig3, use_container_width=True)
+
+# Balance
+balance_churn = df_filtered.groupby(df_filtered["Balance"] > 0)["Exited"].mean().reset_index()
+
+fig4 = px.bar(balance_churn, x="Balance", y="Exited", title="Churn By Balance Type")
+col4.plotly_chart(fig4, use_container_width=True)
+
+# Products
+prod_churn = df_filtered.groupby("NumOfProducts")["Exited"].mean().reset_index()
+
+fig5 = px.bar(prod_churn, x="NumOfProducts", y="Exited", title="Churn by Products")
+col5.plotly_chart(fig5, use_container_width=True)
+
+# ================= INSIGHTS ================= #
+
+st.markdown("### Insights")
+
+st.markdown(f"""
+- Overall churn rate is **{churn_rate:.2f}%**
+- Inactive customers churn more
+- Customers aged 50+ are high risk
+- Germany shows highest churn
+""")
+
+# ================= DATA ================= #
+
+st.dataframe(df_filtered.head(50))
