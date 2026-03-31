@@ -1,0 +1,8 @@
+european-bank-churn-dashboard
+│
+├── app.py
+├── README.md
+├── requirements.txt
+├── data/
+├── screenshots/
+│   └── dashboard.png
