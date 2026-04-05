@@ -1,0 +1,9 @@
+european-bank-churn-dashboard
+│
+├── app.py
+├── requirements.txt
+├── README.md
+├── screenshots/
+├── data/
+└── research-paper/
+    └── IEEE_Customer_Churn_Paper.pdf
